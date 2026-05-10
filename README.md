@@ -198,4 +198,4 @@ The system:
 ## 👨‍💻 Author
 
 Built by Ibrahim Hajuri
-AI/ML Engineer & Backend Developer
+AI/ML Engineer
