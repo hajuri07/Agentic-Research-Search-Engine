@@ -213,7 +213,7 @@ def render_markdown_as_html(text: str) -> str:
     return ''.join(html_lines)
 
 
-BASE_URL = "http://localhost:8000"
+BASE_URL = "https://agentic-research-search-engine.onrender.com/"
 
 
 # ── App layout ────────────────────────────────────────────────────────────────
