@@ -1,3 +1,5 @@
+#Note i created this file using AI to test my agents lool
+
 from tool_manager import ToolManager
 from llm_summarizer import llm_summarizer
 from pathlib import Path
