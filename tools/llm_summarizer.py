@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = Groq(api_key="YOUR API HERE MY FREIND HEHE")
+client = Groq(api_key="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")
 
 
 def llm_summarizer(query: str, result):
