@@ -566,14 +566,13 @@ BASE_URL = "https://agentic-research-search-engine.onrender.com"
 # ── App layout ────────────────────────────────────────────────────────────────
 
 st.markdown("""
-<div class="app-header">
-    <span class="app-title">
-        🔍 Research Search
-    </span>
-
-    <span class="app-subtitle">
-        powered by FastAPI + LLM
-    </span>
+<div class="app-header" style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 2rem;">
+  <span class="app-title" style="font-size: 1.7rem; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(90deg, #f0c040, #c9a84c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+    🔍 Research Search
+  </span>
+  <span class="app-subtitle" style="font-size: 0.8rem; color: #7a6a44; font-weight: 400;">
+    powered by FastAPI + LLM
+  </span>
 </div>
 """, unsafe_allow_html=True)
 
