@@ -984,4 +984,4 @@ elif search_btn and not query.strip():
     st.warning(
         "Please enter a search query."
     )
-```
+
