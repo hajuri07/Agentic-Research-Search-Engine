@@ -1,4 +1,4 @@
-# ⚡ AI Multi-Agent Research Copilot
+# ⚡ AI Multi-Agent Research 
 
 An AI-powered research copilot that intelligently searches across multiple sources like Arxiv, Tavily, and Firecrawl, then generates concise AI summaries using Groq LLMs.
 
