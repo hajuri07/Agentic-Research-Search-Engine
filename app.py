@@ -241,8 +241,7 @@ st.markdown('<hr class="slim-divider">', unsafe_allow_html=True)
 # ── Search execution ──────────────────────────────────────────────────────────
 if search_btn and query.strip():
 
-    # ── STREAMING mode ────────────────────────────────────────────────────────
-    import time  # 👈 Make sure to add this at the very top of your file with other imports
+ 
 
 # ── STREAMING mode ────────────────────────────────────────────────────────
 if use_stream:
@@ -308,7 +307,7 @@ if use_stream:
                 <div style="display: flex; gap: 20px; background: #141100; border: 1px dashed #c9a84c55; border-radius: 8px; padding: 10px 15px; margin-top: 15px;">
                     <div>
                         <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: #7a6a44; text-transform: uppercase;">Inference & Retrieval Latency</div>
-                        <div style="font-size: 1.1rem; font-weight: 700; color: #f0c040;">{elapsed_time:.2s}s</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #f0c040;">{elapsed_time:.2f}s</div>
                     </div>
                     <div style="border-left: 1px solid #2a2200;"></div>
                     <div>
