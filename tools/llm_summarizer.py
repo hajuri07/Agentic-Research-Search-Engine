@@ -1,7 +1,7 @@
 from groq import Groq
 import os
 from dotenv import load_dotenv
-
+import time 
 load_dotenv()
 
 client = Groq(api_key="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")
