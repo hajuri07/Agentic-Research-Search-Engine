@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import json
 import re
-
+import time
 # ── Page config ──────────────────────────────────────────────────────────────
 st.set_page_config(
     page_title="Research Search",
