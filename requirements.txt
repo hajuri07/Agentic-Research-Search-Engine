@@ -1,6 +1,6 @@
 fastapi
 uvicorn
-streamlit
+streamlit>=1.40.0
 requests
 python-dotenv
 groq
