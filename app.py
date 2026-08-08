@@ -242,97 +242,91 @@ st.markdown('<hr class="slim-divider">', unsafe_allow_html=True)
 if search_btn and query.strip():
 
     # ── STREAMING mode ────────────────────────────────────────────────────────
-    if use_stream:
-        status_slot   = st.empty()
-        tool_slot     = st.empty()
-        results_slot  = st.empty()
-        summary_slot  = st.empty()
+    import time  # 👈 Make sure to add this at the very top of your file with other imports
 
-        collected_results = []
-        result_html_parts = []
+# ── STREAMING mode ────────────────────────────────────────────────────────
+if use_stream:
+    status_slot   = st.empty()
+    tool_slot     = st.empty()
+    results_slot  = st.empty()
+    summary_slot  = st.empty()
+    metrics_slot  = st.empty() # 👈 1. Create a blank slot for the latency metric
 
-        try:
-            with requests.get(
-                f"{BASE_URL}/search-stream",
-                params={"query": query},
-                stream=True,
-                timeout=60,
-            ) as resp:
-                resp.raise_for_status()
+    collected_results = []
+    result_html_parts = []
+    
+    start_time = time.time()  # 👈 2. Start the timer right before the API request
 
-                for raw_line in resp.iter_lines():
-                    if not raw_line:
-                        continue
-                    try:
-                        chunk = json.loads(raw_line)
-                    except json.JSONDecodeError:
-                        continue
+    try:
+        with requests.get(
+            f"{BASE_URL}/search-stream",
+            params={"query": query},
+            stream=True,
+            timeout=60,
+        ) as resp:
+            resp.raise_for_status()
 
-                    status = chunk.get("status", "")
+            for raw_line in resp.iter_lines():
+                if not raw_line:
+                    continue
+                try:
+                    chunk = json.loads(raw_line)
+                except json.JSONDecodeError:
+                    continue
 
-                    # — status badges —
-                    if status == "started":
-                        status_slot.markdown(
-                            '<span class="badge badge-blue">⏳ starting</span>',
-                            unsafe_allow_html=True,
-                        )
+                status = chunk.get("status", "")
 
-                    elif status == "tool_selected":
-                        tool = chunk.get("tool", "unknown")
-                        status_slot.markdown(
-                            '<span class="badge badge-blue">🔧 fetching results</span>',
-                            unsafe_allow_html=True,
-                        )
-                        tool_slot.markdown(
-                            f'<div class="tool-chip">🛠 tool &nbsp;→&nbsp; <strong>{tool}</strong></div>',
-                            unsafe_allow_html=True,
-                        )
+                # — status badges —
+                if status == "started":
+                    status_slot.markdown(
+                        '<span class="badge badge-blue">⏳ starting</span>',
+                        unsafe_allow_html=True,
+                    )
 
-                    elif status == "processing":
-                        status_slot.markdown(
-                            '<span class="badge badge-amber">⚙️ processing</span>',
-                            unsafe_allow_html=True,
-                        )
+                elif status == "tool_selected":
+                    tool = chunk.get("tool", "unknown")
+                    status_slot.markdown(
+                        '<span class="badge badge-blue">🔧 fetching results</span>',
+                        unsafe_allow_html=True,
+                    )
+                
+                # ... Keep your existing chunk processing logic down to the end of the loop ...
 
-                    elif status == "summary":
-                        status_slot.markdown(
-                            '<span class="badge badge-green">✅ done</span>',
-                            unsafe_allow_html=True,
-                        )
-                        raw_summary = chunk.get("summary", "")
-                        clean_summary = render_markdown_as_html(raw_summary)
-                        summary_slot.markdown(f"""
-<div class="summary-box">
-  <div class="summary-label">Summary</div>
-  {clean_summary}
-</div>
-""", unsafe_allow_html=True)
+            # ── 3. Loop finishes successfully! Calculate total time ──
+            end_time = time.time()
+            elapsed_time = end_time - start_time
+            
+            # Show a green "Completed" badge
+            status_slot.markdown(
+                '<span class="badge badge-green">✅ completed</span>',
+                unsafe_allow_html=True,
+            )
+            
+            # Render a clean, production-grade telemetry metric box
+            metrics_slot.markdown(
+                f"""
+                <div style="display: flex; gap: 20px; background: #141100; border: 1px dashed #c9a84c55; border-radius: 8px; padding: 10px 15px; margin-top: 15px;">
+                    <div>
+                        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: #7a6a44; text-transform: uppercase;">Inference & Retrieval Latency</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; color: #f0c040;">{elapsed_time:.2s}s</div>
+                    </div>
+                    <div style="border-left: 1px solid #2a2200;"></div>
+                    <div>
+                        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: #7a6a44; text-transform: uppercase;">Provider & Model</div>
+                        <div style="font-size: 0.9rem; font-weight: 600; color: #e0d0a0; padding-top: 2px;">Groq / Llama 3.3 70B</div>
+                    </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-                    elif status == "done":
-                        pass  # badge already green
+    except Exception as e:
+        status_slot.markdown(
+            '<span class="badge badge-amber">❌ error</span>',
+            unsafe_allow_html=True,
+        )
+        st.error(f"Error connecting to backend: {e}")
 
-                    # — result card (no status key) —
-                    elif "title" in chunk:
-                        collected_results.append(chunk)
-                        title   = chunk.get("title", "Untitled")
-                        snippet = chunk.get("content", "")[:220]
-                        url     = chunk.get("url", "")
-
-                        result_html_parts.append(f"""
-<div class="result-card">
-  <div class="result-title">{title}</div>
-  <div class="result-snippet">{snippet}{'…' if len(chunk.get('content',''))>220 else ''}</div>
-  {'<a class="result-url" href="'+url+'" target="_blank">'+url+'</a>' if url else ''}
-</div>""")
-                        results_slot.markdown(
-                            "".join(result_html_parts),
-                            unsafe_allow_html=True,
-                        )
-
-        except requests.exceptions.ConnectionError:
-            st.error("❌ Cannot connect to FastAPI. Is it running on localhost:8000?")
-        except Exception as e:
-            st.error(f"❌ Error: {e}")
 
     # ── NON-STREAMING mode ────────────────────────────────────────────────────
     else:
