@@ -244,50 +244,50 @@ if search_btn and query.strip():
  
 
 # ── STREAMING mode ────────────────────────────────────────────────────────
-if use_stream:
-    status_slot   = st.empty()
-    tool_slot     = st.empty()
-    results_slot  = st.empty()
-    summary_slot  = st.empty()
-    metrics_slot  = st.empty() # 👈 1. Create a blank slot for the latency metric
+ if use_stream:
+     status_slot   = st.empty()
+     tool_slot     = st.empty()
+     results_slot  = st.empty()
+     summary_slot  = st.empty()
+     metrics_slot  = st.empty() # 👈 1. Create a blank slot for the latency metric
 
-    collected_results = []
-    result_html_parts = []
+     collected_results = []
+     result_html_parts = []
     
-    start_time = time.time()  # 👈 2. Start the timer right before the API request
+     start_time = time.time()  # 👈 2. Start the timer right before the API request
 
-    try:
-        with requests.get(
+     try:
+         with requests.get(
             f"{BASE_URL}/search-stream",
             params={"query": query},
             stream=True,
             timeout=60,
-        ) as resp:
-            resp.raise_for_status()
+         ) as resp:
+             resp.raise_for_status()
 
-            for raw_line in resp.iter_lines():
-                if not raw_line:
+             for raw_line in resp.iter_lines():
+                 if not raw_line:
                     continue
-                try:
-                    chunk = json.loads(raw_line)
-                except json.JSONDecodeError:
-                    continue
+                 try:
+                     chunk = json.loads(raw_line)
+                 except json.JSONDecodeError:
+                     continue
 
-                status = chunk.get("status", "")
+                 status = chunk.get("status", "")
 
                 # — status badges —
-                if status == "started":
-                    status_slot.markdown(
-                        '<span class="badge badge-blue">⏳ starting</span>',
-                        unsafe_allow_html=True,
-                    )
+                 if status == "started":
+                     status_slot.markdown(
+                         '<span class="badge badge-blue">⏳ starting</span>',
+                         unsafe_allow_html=True,
+                     )
 
-                elif status == "tool_selected":
-                    tool = chunk.get("tool", "unknown")
-                    status_slot.markdown(
-                        '<span class="badge badge-blue">🔧 fetching results</span>',
-                        unsafe_allow_html=True,
-                    )
+                 elif status == "tool_selected":
+                     tool = chunk.get("tool", "unknown")
+                     status_slot.markdown(
+                         '<span class="badge badge-blue">🔧 fetching results</span>',
+                         unsafe_allow_html=True,
+                     ) 
                 
                 # ... Keep your existing chunk processing logic down to the end of the loop ...
 
