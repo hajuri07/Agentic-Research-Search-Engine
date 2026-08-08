@@ -747,88 +747,86 @@ if search_btn and query.strip():
 
         else:
 
-            # ── Calculate latency ────────────────────────────────────────────
+           
+    # ── Calculate latency ────────────────────────────────────────────────────────
 
             end_time = time.time()
+            elapsed_time = end_time - start_time
 
-            elapsed_time = (
-                end_time - start_time
-            )
-
-            # ── Completed badge ──────────────────────────────────────────────
+# ── Completed badge ──────────────────────────────────────────────────────────
 
             status_slot.markdown(
                 '<span class="badge badge-green">'
                 '✅ completed'
                 '</span>',
                 unsafe_allow_html=True
-            )
+                )
 
-            # ── Telemetry metric ─────────────────────────────────────────────
+        # ── Telemetry metric ─────────────────────────────────────────────────────────
 
-            metrics_slot.markdown(
-                f"""
-                <div style="
-                    display: flex;
-                    gap: 20px;
-                    background: #141100;
-                    border: 1px dashed #c9a84c55;
-                    border-radius: 8px;
-                    padding: 10px 15px;
-                    margin-top: 15px;
+             metrics_html = f"""
+             <div style="
+             display: flex;
+             gap: 20px;
+             background: #141100;
+             border: 1px dashed #c9a84c55;
+             border-radius: 8px;
+             padding: 10px 15px;
+             margin-top: 15px;
                 ">
 
-                    <div>
+        <div>
+        <div style="
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.65rem;
+            color: #7a6a44;
+            text-transform: uppercase;
+        ">
+            Inference & Retrieval Latency
+        </div>
 
-                        <div style="
-                            font-family: 'IBM Plex Mono', monospace;
-                            font-size: 0.65rem;
-                            color: #7a6a44;
-                            text-transform: uppercase;
-                        ">
-                            Inference & Retrieval Latency
-                        </div>
+        <div style="
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #f0c040;
+        ">
+            {elapsed_time:.2f}s
+        </div>
+    </div>
 
-                        <div style="
-                            font-size: 1.1rem;
-                            font-weight: 700;
-                            color: #f0c040;
-                        ">
-                            {elapsed_time:.2f}s
-                        </div>
+    <div style="
+        border-left: 1px solid #2a2200;
+    "></div>
 
-                    </div>
+    <div>
+        <div style="
+            font-family: 'IBM Plex Mono', monospace;
+            font-size: 0.65rem;
+            color: #7a6a44;
+            text-transform: uppercase;
+        ">
+            Provider & Model
+        </div>
 
-                    <div style="
-                        border-left: 1px solid #2a2200;
-                    "></div>
+        <div style="
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #e0d0a0;
+            padding-top: 2px;
+        ">
+            Groq / Llama 3.3 70B
+        </div>
+    </div>
 
-                    <div>
+</div>
+"""
 
-                        <div style="
-                            font-family: 'IBM Plex Mono', monospace;
-                            font-size: 0.65rem;
-                            color: #7a6a44;
-                            text-transform: uppercase;
-                        ">
-                            Provider & Model
-                        </div>
+            metrics_slot.markdown(
+                        metrics_html,
+                    unsafe_allow_html=True
+                )
 
-                        <div style="
-                            font-size: 0.9rem;
-                            font-weight: 600;
-                            color: #e0d0a0;
-                            padding-top: 2px;
-                        ">
-                            Groq / Llama 3.3 70B
-                        </div>
 
-                    </div>
-
-                </div>
-                """,
-                unsafe_allow_html=True
-            )
 
 
     # ========================================================================
