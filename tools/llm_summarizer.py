@@ -46,4 +46,4 @@ Task:
 
     return response.choices[0].message.content
 
-print("GROQ KEY:", os.getenv("GROQ_API_KEY"))
+
