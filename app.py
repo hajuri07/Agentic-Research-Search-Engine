@@ -623,6 +623,7 @@ if search_btn and query.strip():
         results_slot = st.empty()
         summary_slot = st.empty()
         metrics_slot = st.empty()
+        debug_slot = st.expander("🐛 Raw stream chunks (debug)")
 
         collected_results = []
 
@@ -682,6 +683,7 @@ if search_btn and query.strip():
 
                         # Ignore malformed/non-JSON lines
                         continue
+                        debug_slot.write(chunk)
 
                     process_stream_chunk(
                         chunk=chunk,
