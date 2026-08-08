@@ -3,14 +3,20 @@ import requests
 import json
 import re
 import time
+import html
+
+
 # ── Page config ──────────────────────────────────────────────────────────────
+
 st.set_page_config(
     page_title="Research Search",
     page_icon="🔍",
     layout="centered",
 )
 
-# ── Gold / dark theme styles ──────────────────────────────────────────────────
+
+# ── Gold / dark theme styles ─────────────────────────────────────────────────
+
 st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;600;800&family=IBM+Plex+Mono:wght@400;600&display=swap');
@@ -23,7 +29,10 @@ html, body, [class*="css"], .stApp {
 }
 
 /* Hide Streamlit chrome */
-#MainMenu, footer, header { visibility: hidden; }
+#MainMenu, footer, header {
+    visibility: hidden;
+}
+
 .block-container {
     padding-top: 2.5rem;
     max-width: 760px;
@@ -40,7 +49,11 @@ html, body, [class*="css"], .stApp {
     font-size: 0.95rem !important;
     padding: 10px 14px !important;
 }
-.stTextInput > div > div > input::placeholder { color: #7a6a44 !important; }
+
+.stTextInput > div > div > input::placeholder {
+    color: #7a6a44 !important;
+}
+
 .stTextInput > div > div > input:focus {
     box-shadow: 0 0 0 2px #c9a84c55 !important;
     border-color: #f0c040 !important;
@@ -56,13 +69,17 @@ html, body, [class*="css"], .stApp {
     border-radius: 8px !important;
     letter-spacing: 0.3px;
 }
+
 .stButton > button[kind="primary"]:hover {
     background: linear-gradient(135deg, #f0c040, #ffe680) !important;
     transform: translateY(-1px);
 }
 
 /* Toggle */
-.stToggle label { color: #c9a84c !important; font-size: 0.85rem; }
+.stToggle label {
+    color: #c9a84c !important;
+    font-size: 0.85rem;
+}
 
 /* ── Header ── */
 .app-header {
@@ -71,6 +88,7 @@ html, body, [class*="css"], .stApp {
     gap: 10px;
     margin-bottom: 2rem;
 }
+
 .app-title {
     font-size: 1.7rem;
     font-weight: 800;
@@ -80,6 +98,7 @@ html, body, [class*="css"], .stApp {
     -webkit-text-fill-color: transparent;
     background-clip: text;
 }
+
 .app-subtitle {
     font-size: 0.8rem;
     color: #7a6a44;
@@ -97,10 +116,30 @@ html, body, [class*="css"], .stApp {
     letter-spacing: 0.5px;
     text-transform: uppercase;
 }
-.badge-blue  { background: #1a2a4a; color: #6ab0ff; border: 1px solid #2a4a7a; }
-.badge-green { background: #0d2a1a; color: #4cdb80; border: 1px solid #1a5a30; }
-.badge-gray  { background: #1e1e1e; color: #aaa;    border: 1px solid #333; }
-.badge-amber { background: #2a1e00; color: #f0c040; border: 1px solid #5a4000; }
+
+.badge-blue {
+    background: #1a2a4a;
+    color: #6ab0ff;
+    border: 1px solid #2a4a7a;
+}
+
+.badge-green {
+    background: #0d2a1a;
+    color: #4cdb80;
+    border: 1px solid #1a5a30;
+}
+
+.badge-gray {
+    background: #1e1e1e;
+    color: #aaa;
+    border: 1px solid #333;
+}
+
+.badge-amber {
+    background: #2a1e00;
+    color: #f0c040;
+    border: 1px solid #5a4000;
+}
 
 /* ── Tool chip ── */
 .tool-chip {
@@ -126,10 +165,12 @@ html, body, [class*="css"], .stApp {
     background: #141100;
     transition: border-color .2s, box-shadow .2s;
 }
+
 .result-card:hover {
     border-color: #c9a84c;
     box-shadow: 0 0 12px #c9a84c22;
 }
+
 .result-title {
     font-weight: 700;
     font-size: 0.92rem;
@@ -137,6 +178,7 @@ html, body, [class*="css"], .stApp {
     margin-bottom: 5px;
     line-height: 1.4;
 }
+
 .result-snippet {
     font-size: 0.8rem;
     color: #b0a080;
@@ -147,6 +189,7 @@ html, body, [class*="css"], .stApp {
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+
 .result-url {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.68rem;
@@ -155,7 +198,11 @@ html, body, [class*="css"], .stApp {
     opacity: 0.8;
     word-break: break-all;
 }
-.result-url:hover { opacity: 1; text-decoration: underline; }
+
+.result-url:hover {
+    opacity: 1;
+    text-decoration: underline;
+}
 
 /* ── Summary box ── */
 .summary-box {
@@ -168,6 +215,7 @@ html, body, [class*="css"], .stApp {
     line-height: 1.75;
     color: #e0d0a0;
 }
+
 .summary-label {
     font-family: 'IBM Plex Mono', monospace;
     font-size: 0.62rem;
@@ -189,40 +237,346 @@ html, body, [class*="css"], .stApp {
 
 
 # ── Helpers ──────────────────────────────────────────────────────────────────
+
 def render_markdown_as_html(text: str) -> str:
     """Convert basic markdown to HTML for clean rendering inside st.markdown."""
-    # bold
-    text = re.sub(r'\*\*(.+?)\*\*', r'<strong>\1</strong>', text)
-    # italic
-    text = re.sub(r'\*(.+?)\*', r'<em>\1</em>', text)
-    # bullet list items (- or *)
+
+    if not text:
+        return ""
+
+    text = str(text)
+
+    # Escape HTML first
+    text = html.escape(text)
+
+    # Bold
+    text = re.sub(
+        r'\*\*(.+?)\*\*',
+        r'<strong>\1</strong>',
+        text
+    )
+
+    # Italic
+    text = re.sub(
+        r'\*(.+?)\*',
+        r'<em>\1</em>',
+        text
+    )
+
     lines = text.split('\n')
     html_lines = []
+
     for line in lines:
         stripped = line.strip()
+
         if stripped.startswith('* ') or stripped.startswith('- '):
-            html_lines.append(f"&bull; {stripped[2:]}<br>")
-        elif stripped.startswith(('1.','2.','3.','4.','5.','6.','7.','8.','9.')):
-            # numbered list
+            html_lines.append(
+                f"&bull; {stripped[2:]}<br>"
+            )
+
+        elif stripped.startswith(
+            ('1.', '2.', '3.', '4.', '5.',
+             '6.', '7.', '8.', '9.')
+        ):
             parts = stripped.split('.', 1)
-            html_lines.append(f"<strong>{parts[0]}.</strong>{parts[1] if len(parts)>1 else ''}<br>")
+
+            html_lines.append(
+                f"<strong>{parts[0]}.</strong>"
+                f"{parts[1] if len(parts) > 1 else ''}<br>"
+            )
+
         elif stripped == '':
             html_lines.append('<br>')
+
         else:
             html_lines.append(stripped + ' ')
+
     return ''.join(html_lines)
+
+
+def render_results(results):
+    """Render research result cards."""
+
+    if not results:
+        return
+
+    cards_html = []
+
+    for item in results:
+
+        if not isinstance(item, dict):
+            continue
+
+        title = html.escape(
+            str(item.get("title", "Untitled"))
+        )
+
+        content = str(
+            item.get("content", "")
+        )
+
+        snippet = html.escape(
+            content[:220]
+        )
+
+        url = str(
+            item.get("url", "")
+        ).strip()
+
+        url_html = ""
+
+        if url:
+            safe_url = html.escape(
+                url,
+                quote=True
+            )
+
+            url_html = (
+                f'<a class="result-url" '
+                f'href="{safe_url}" '
+                f'target="_blank">'
+                f'{safe_url}'
+                f'</a>'
+            )
+
+        ellipsis = "…" if len(content) > 220 else ""
+
+        cards_html.append(
+            f"""
+            <div class="result-card">
+                <div class="result-title">
+                    {title}
+                </div>
+
+                <div class="result-snippet">
+                    {snippet}{ellipsis}
+                </div>
+
+                {url_html}
+            </div>
+            """
+        )
+
+    if cards_html:
+        st.markdown(
+            "".join(cards_html),
+            unsafe_allow_html=True
+        )
+
+
+def process_stream_chunk(
+    chunk,
+    status_slot,
+    tool_slot,
+    results_slot,
+    summary_slot,
+    collected_results,
+):
+    """
+    Process one JSON chunk returned by /search-stream.
+
+    Supports common chunk types:
+    started
+    tool_selected
+    result
+    results
+    summary
+    completed
+    error
+    """
+
+    if not isinstance(chunk, dict):
+        return False
+
+    status = chunk.get("status", "")
+
+    # ── Started ───────────────────────────────────────────────────────────────
+
+    if status == "started":
+
+        status_slot.markdown(
+            '<span class="badge badge-blue">'
+            '⏳ starting'
+            '</span>',
+            unsafe_allow_html=True
+        )
+
+    # ── Tool selected ─────────────────────────────────────────────────────────
+
+    elif status == "tool_selected":
+
+        tool = chunk.get(
+            "tool",
+            chunk.get("tool_used", "unknown")
+        )
+
+        status_slot.markdown(
+            '<span class="badge badge-blue">'
+            '🔧 fetching results'
+            '</span>',
+            unsafe_allow_html=True
+        )
+
+        tool_slot.markdown(
+            f'<div class="tool-chip">'
+            f'🛠 tool &nbsp;→&nbsp; '
+            f'<strong>{html.escape(str(tool))}</strong>'
+            f'</div>',
+            unsafe_allow_html=True
+        )
+
+    # ── Single result ─────────────────────────────────────────────────────────
+
+    elif status in ("result", "search_result"):
+
+        result = chunk.get(
+            "result",
+            chunk.get("data")
+        )
+
+        if isinstance(result, dict):
+
+            collected_results.append(result)
+
+            results_slot.empty()
+
+            with results_slot.container():
+                render_results(collected_results)
+
+    # ── Multiple results ──────────────────────────────────────────────────────
+
+    elif status in ("results", "search_results"):
+
+        results = chunk.get(
+            "results",
+            chunk.get("data", [])
+        )
+
+        if isinstance(results, list):
+
+            collected_results.extend(
+                [
+                    item for item in results
+                    if isinstance(item, dict)
+                ]
+            )
+
+            results_slot.empty()
+
+            with results_slot.container():
+                render_results(collected_results)
+
+    # ── Summary ───────────────────────────────────────────────────────────────
+
+    elif status == "summary":
+
+        summary = chunk.get(
+            "summary",
+            chunk.get("data", "")
+        )
+
+        if summary:
+
+            clean_summary = render_markdown_as_html(
+                str(summary)
+            )
+
+            summary_slot.markdown(
+                f"""
+                <div class="summary-box">
+                    <div class="summary-label">
+                        Summary
+                    </div>
+                    {clean_summary}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    # ── Completed ─────────────────────────────────────────────────────────────
+
+    elif status in ("completed", "complete", "done"):
+
+        # Sometimes the final chunk contains results.
+        final_results = chunk.get("results")
+
+        if isinstance(final_results, list):
+
+            collected_results.clear()
+
+            collected_results.extend(
+                [
+                    item for item in final_results
+                    if isinstance(item, dict)
+                ]
+            )
+
+            results_slot.empty()
+
+            with results_slot.container():
+                render_results(collected_results)
+
+        # Sometimes the final chunk contains the summary.
+        final_summary = chunk.get("summary")
+
+        if final_summary:
+
+            clean_summary = render_markdown_as_html(
+                str(final_summary)
+            )
+
+            summary_slot.markdown(
+                f"""
+                <div class="summary-box">
+                    <div class="summary-label">
+                        Summary
+                    </div>
+                    {clean_summary}
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+        return True
+
+    # ── Backend error ─────────────────────────────────────────────────────────
+
+    elif status == "error":
+
+        message = chunk.get(
+            "message",
+            chunk.get(
+                "error",
+                "Unknown backend error"
+            )
+        )
+
+        raise RuntimeError(
+            str(message)
+        )
+
+    return False
+
+
 
 
 BASE_URL = "https://agentic-research-search-engine.onrender.com"
 
 
 # ── App layout ────────────────────────────────────────────────────────────────
+
 st.markdown("""
 <div class="app-header">
-  <span class="app-title">🔍 Research Search</span>
-  <span class="app-subtitle">powered by FastAPI + LLM</span>
+    <span class="app-title">
+        🔍 Research Search
+    </span>
+
+    <span class="app-subtitle">
+        powered by FastAPI + LLM
+    </span>
 </div>
 """, unsafe_allow_html=True)
+
 
 query = st.text_input(
     label="",
@@ -230,161 +584,404 @@ query = st.text_input(
     label_visibility="collapsed",
 )
 
-col1, col2 = st.columns([1, 5])
-with col1:
-    search_btn = st.button("Search", use_container_width=True, type="primary")
-with col2:
-    use_stream = st.toggle("Stream results", value=True)
 
-st.markdown('<hr class="slim-divider">', unsafe_allow_html=True)
+col1, col2 = st.columns([1, 5])
+
+with col1:
+
+    search_btn = st.button(
+        "Search",
+        use_container_width=True,
+        type="primary"
+    )
+
+with col2:
+
+    use_stream = st.toggle(
+        "Stream results",
+        value=True
+    )
+
+
+st.markdown(
+    '<hr class="slim-divider">',
+    unsafe_allow_html=True
+)
+
 
 # ── Search execution ──────────────────────────────────────────────────────────
+
 if search_btn and query.strip():
 
- 
+    # ========================================================================
+    # STREAMING MODE
+    # ========================================================================
 
-# ── STREAMING mode ────────────────────────────────────────────────────────
- if use_stream:
-     status_slot   = st.empty()
-     tool_slot     = st.empty()
-     results_slot  = st.empty()
-     summary_slot  = st.empty()
-     metrics_slot  = st.empty() # 👈 1. Create a blank slot for the latency metric
+    if use_stream:
 
-     collected_results = []
-     result_html_parts = []
-    
-     start_time = time.time()  # 👈 2. Start the timer right before the API request
+        status_slot = st.empty()
+        tool_slot = st.empty()
+        results_slot = st.empty()
+        summary_slot = st.empty()
+        metrics_slot = st.empty()
 
-     try:
-         with requests.get(
-            f"{BASE_URL}/search-stream",
-            params={"query": query},
-            stream=True,
-            timeout=60,
-         ) as resp:
-             resp.raise_for_status()
+        collected_results = []
 
-             for raw_line in resp.iter_lines():
-                 if not raw_line:
-                    continue
-                 try:
-                     chunk = json.loads(raw_line)
-                 except json.JSONDecodeError:
-                     continue
+        start_time = time.time()
 
-                 status = chunk.get("status", "")
+        try:
 
-                # — status badges —
-                 if status == "started":
-                     status_slot.markdown(
-                         '<span class="badge badge-blue">⏳ starting</span>',
-                         unsafe_allow_html=True,
-                     )
+            with requests.get(
+                f"{BASE_URL}/search-stream",
+                params={
+                    "query": query
+                },
+                stream=True,
+                timeout=120,
+            ) as resp:
 
-                 elif status == "tool_selected":
-                     tool = chunk.get("tool", "unknown")
-                     status_slot.markdown(
-                         '<span class="badge badge-blue">🔧 fetching results</span>',
-                         unsafe_allow_html=True,
-                     ) 
-                
-                # ... Keep your existing chunk processing logic down to the end of the loop ...
+                resp.raise_for_status()
 
-            # ── 3. Loop finishes successfully! Calculate total time ──
-            end_time = time.time()
-            elapsed_time = end_time - start_time
-            
-            # Show a green "Completed" badge
+                for raw_line in resp.iter_lines(
+                    decode_unicode=True
+                ):
+
+                    if not raw_line:
+                        continue
+
+                    # Convert bytes/string to normal string
+                    if isinstance(raw_line, bytes):
+                        raw_line = raw_line.decode(
+                            "utf-8",
+                            errors="ignore"
+                        )
+
+                    raw_line = raw_line.strip()
+
+                    # Support SSE-style responses:
+                    # data: {...}
+                    if raw_line.startswith("data:"):
+
+                        raw_line = raw_line[
+                            len("data:"):
+                        ].strip()
+
+                    if not raw_line:
+                        continue
+
+                    # Ignore SSE terminator
+                    if raw_line == "[DONE]":
+                        break
+
+                    try:
+
+                        chunk = json.loads(
+                            raw_line
+                        )
+
+                    except json.JSONDecodeError:
+
+                        # Ignore malformed/non-JSON lines
+                        continue
+
+                    process_stream_chunk(
+                        chunk=chunk,
+                        status_slot=status_slot,
+                        tool_slot=tool_slot,
+                        results_slot=results_slot,
+                        summary_slot=summary_slot,
+                        collected_results=collected_results,
+                    )
+
+        except requests.exceptions.Timeout:
+
             status_slot.markdown(
-                '<span class="badge badge-green">✅ completed</span>',
-                unsafe_allow_html=True,
+                '<span class="badge badge-amber">'
+                '❌ timeout'
+                '</span>',
+                unsafe_allow_html=True
             )
-            
-            # Render a clean, production-grade telemetry metric box
+
+            st.error(
+                "The backend took too long to respond."
+            )
+
+        except requests.exceptions.ConnectionError as e:
+
+            status_slot.markdown(
+                '<span class="badge badge-amber">'
+                '❌ connection error'
+                '</span>',
+                unsafe_allow_html=True
+            )
+
+            st.error(
+                f"Cannot connect to FastAPI backend: {e}"
+            )
+
+        except requests.exceptions.HTTPError as e:
+
+            status_slot.markdown(
+                '<span class="badge badge-amber">'
+                '❌ HTTP error'
+                '</span>',
+                unsafe_allow_html=True
+            )
+
+            st.error(
+                f"Backend returned an HTTP error: {e}"
+            )
+
+        except Exception as e:
+
+            status_slot.markdown(
+                '<span class="badge badge-amber">'
+                '❌ error'
+                '</span>',
+                unsafe_allow_html=True
+            )
+
+            st.error(
+                f"Backend error: {e}"
+            )
+
+        else:
+
+            # ── Calculate latency ────────────────────────────────────────────
+
+            end_time = time.time()
+
+            elapsed_time = (
+                end_time - start_time
+            )
+
+            # ── Completed badge ──────────────────────────────────────────────
+
+            status_slot.markdown(
+                '<span class="badge badge-green">'
+                '✅ completed'
+                '</span>',
+                unsafe_allow_html=True
+            )
+
+            # ── Telemetry metric ─────────────────────────────────────────────
+
             metrics_slot.markdown(
                 f"""
-                <div style="display: flex; gap: 20px; background: #141100; border: 1px dashed #c9a84c55; border-radius: 8px; padding: 10px 15px; margin-top: 15px;">
+                <div style="
+                    display: flex;
+                    gap: 20px;
+                    background: #141100;
+                    border: 1px dashed #c9a84c55;
+                    border-radius: 8px;
+                    padding: 10px 15px;
+                    margin-top: 15px;
+                ">
+
                     <div>
-                        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: #7a6a44; text-transform: uppercase;">Inference & Retrieval Latency</div>
-                        <div style="font-size: 1.1rem; font-weight: 700; color: #f0c040;">{elapsed_time:.2f}s</div>
+
+                        <div style="
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.65rem;
+                            color: #7a6a44;
+                            text-transform: uppercase;
+                        ">
+                            Inference & Retrieval Latency
+                        </div>
+
+                        <div style="
+                            font-size: 1.1rem;
+                            font-weight: 700;
+                            color: #f0c040;
+                        ">
+                            {elapsed_time:.2f}s
+                        </div>
+
                     </div>
-                    <div style="border-left: 1px solid #2a2200;"></div>
+
+                    <div style="
+                        border-left: 1px solid #2a2200;
+                    "></div>
+
                     <div>
-                        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.65rem; color: #7a6a44; text-transform: uppercase;">Provider & Model</div>
-                        <div style="font-size: 0.9rem; font-weight: 600; color: #e0d0a0; padding-top: 2px;">Groq / Llama 3.3 70B</div>
+
+                        <div style="
+                            font-family: 'IBM Plex Mono', monospace;
+                            font-size: 0.65rem;
+                            color: #7a6a44;
+                            text-transform: uppercase;
+                        ">
+                            Provider & Model
+                        </div>
+
+                        <div style="
+                            font-size: 0.9rem;
+                            font-weight: 600;
+                            color: #e0d0a0;
+                            padding-top: 2px;
+                        ">
+                            Groq / Llama 3.3 70B
+                        </div>
+
                     </div>
+
                 </div>
                 """,
-                unsafe_allow_html=True,
+                unsafe_allow_html=True
             )
 
-    except Exception as e:
-        status_slot.markdown(
-            '<span class="badge badge-amber">❌ error</span>',
-            unsafe_allow_html=True,
-        )
-        st.error(f"Error connecting to backend: {e}")
 
+    # ========================================================================
+    # NON-STREAMING MODE
+    # ========================================================================
 
-    # ── NON-STREAMING mode ────────────────────────────────────────────────────
     else:
+
         with st.spinner("Searching..."):
+
             try:
+
                 resp = requests.get(
                     f"{BASE_URL}/search",
-                    params={"query": query},
-                    timeout=60,
+                    params={
+                        "query": query
+                    },
+                    timeout=120,
                 )
+
+                resp.raise_for_status()
+
                 data = resp.json()
+
+            except requests.exceptions.Timeout:
+
+                st.error(
+                    "❌ Backend request timed out."
+                )
+
+                st.stop()
+
             except requests.exceptions.ConnectionError:
-                st.error("❌ Cannot connect to FastAPI. Is it running on localhost:8000?")
+
+                st.error(
+                    "❌ Cannot connect to FastAPI backend."
+                )
+
                 st.stop()
+
+            except requests.exceptions.HTTPError as e:
+
+                st.error(
+                    f"❌ Backend HTTP error: {e}"
+                )
+
+                st.stop()
+
+            except ValueError:
+
+                st.error(
+                    "❌ Backend returned invalid JSON."
+                )
+
+                st.stop()
+
             except Exception as e:
-                st.error(f"❌ {e}")
+
+                st.error(
+                    f"❌ {e}"
+                )
+
                 st.stop()
+
+
+        # ── API-level error ──────────────────────────────────────────────────
 
         if data.get("status") == "error":
-            st.error(f"API error: {data.get('message')}")
+
+            st.error(
+                f"API error: "
+                f"{data.get('message', 'Unknown error')}"
+            )
+
             st.stop()
 
-        # tool chip
-        tool = data.get("tool_used", "unknown")
-        st.markdown(
-            f'<div class="tool-chip">🛠 tool &nbsp;→&nbsp; <strong>{tool}</strong></div>',
-            unsafe_allow_html=True,
+
+        # ── Tool chip ────────────────────────────────────────────────────────
+
+        tool = data.get(
+            "tool_used",
+            "unknown"
         )
 
-        # result cards
-        results = data.get("results", [])
-        if results:
-            cards_html = []
-            for item in results:
-                if not isinstance(item, dict):
-                    continue
-                title   = item.get("title", "Untitled")
-                snippet = item.get("content", "")[:220]
-                url     = item.get("url", "")
-                cards_html.append(f"""
-<div class="result-card">
-  <div class="result-title">{title}</div>
-  <div class="result-snippet">{snippet}{'…' if len(item.get('content',''))>220 else ''}</div>
-  {'<a class="result-url" href="'+url+'" target="_blank">'+url+'</a>' if url else ''}
-</div>""")
-            st.markdown("".join(cards_html), unsafe_allow_html=True)
-        else:
-            st.info("No results found.")
+        st.markdown(
+            f"""
+            <div class="tool-chip">
+                🛠 tool &nbsp;→&nbsp;
+                <strong>
+                    {html.escape(str(tool))}
+                </strong>
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
 
-        # summary
-        raw_summary = data.get("summary", "")
+
+        # ── Result cards ─────────────────────────────────────────────────────
+
+        results = data.get(
+            "results",
+            []
+        )
+
+        if results:
+
+            render_results(
+                results
+            )
+
+        else:
+
+            st.info(
+                "No results found."
+            )
+
+
+        # ── Summary ──────────────────────────────────────────────────────────
+
+        raw_summary = data.get(
+            "summary",
+            ""
+        )
+
         if raw_summary:
-            clean_summary = render_markdown_as_html(raw_summary)
-            st.markdown(f"""
-<div class="summary-box">
-  <div class="summary-label">Summary</div>
-  {clean_summary}
-</div>
-""", unsafe_allow_html=True)
+
+            clean_summary = (
+                render_markdown_as_html(
+                    raw_summary
+                )
+            )
+
+            st.markdown(
+                f"""
+                <div class="summary-box">
+
+                    <div class="summary-label">
+                        Summary
+                    </div>
+
+                    {clean_summary}
+
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+
+# ── Empty query ──────────────────────────────────────────────────────────────
 
 elif search_btn and not query.strip():
-    st.warning("Please enter a search query.")
+
+    st.warning(
+        "Please enter a search query."
+    )
+```
