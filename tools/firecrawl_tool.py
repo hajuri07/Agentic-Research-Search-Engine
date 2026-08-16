@@ -8,7 +8,7 @@ load_dotenv()
 class FireCrawl(BaseTool):
     
     def __init__(self):
-        self.app=FirecrawlApp(api_key= os.getenv("FIRECRAWL_API_KEY"))
+        self.app=FirecrawlApp(api_key= "fc-f25d505848b3472985e3627ad8fadda3")
 
     def run(self,query:str):
 
