@@ -2,7 +2,7 @@ from groq import Groq
 import os
 
 
-client = Groq(api_key="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")
+client = Groq(api_key="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")
 
 
 def llm_summarizer(query: str, result):
